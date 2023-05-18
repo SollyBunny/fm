@@ -1,17 +1,19 @@
-
-#ifndef WINDOW_H
-#define WINDOW_H
-#include "include.h"
+#include "common.h"
+#include <stdio.h>
 
 struct termios w_term, w_restore;
+struct winsize w_size;
 
 void w_resize() {
-	ioctl(0, TIOCGWINSZ, &ws);
+	ioctl(0, TIOCGWINSZ, &w_size);
+	onresize();
 }
 
-inline void w_setup() {
+void w_setup() {
 
-	ioctl(0, TIOCGWINSZ, &ws);
+	printf("\x1b[?1049h\x1b[?1003h\x1b[?25l\x1b[?1000h");
+
+	ioctl(0, TIOCGWINSZ, &w_size);
 	signal(SIGWINCH, w_resize);
 	
 	tcgetattr(0, &w_term);
@@ -23,18 +25,20 @@ inline void w_setup() {
 	w_term.c_cc[VMIN] = 1;
 	tcsetattr(0, TCSANOW, &w_term);
 
-	printf("\x1b[?1003h\x1b[?25l");
-	
 }
 
-inline void w_reset() {
+void w_reset() {
 	tcsetattr(0, TCSANOW, &w_restore); // restore terminal state
-	printf("\x1b[?9l\x1b[?1003l\x1b[?25h"); // disable mouse echo
+	printf("\x1b[?1000l\x1b[?1003l\x1b[?25h\x1b[?1049l"); // disable mouse echo
 }
 
 void w_display(Folder *folder) {
-	printf("\x1b[2J\x1b[H%s\n", folder->path);
-	for (unsigned int i = folder->off; i < folder->numfiles && i + folder->off < wy; ++i) {
+	printf("\x1b[2J\x1b[H%s %d/%d", folder->path, folder->cur + 1, folder->numfiles);
+	unsigned int end;
+	if (folder->numfiles < wy + folder->off - 1) end = folder->numfiles;
+	else                                         end = wy + folder->off - 1;
+	for (unsigned int i = folder->off; i < end; ++i) {
+		putchar('\n');
 		if (i == folder->cur)
 			printf("\x1b[7m");
 		switch (folder->files[i].type) {
@@ -63,10 +67,9 @@ void w_display(Folder *folder) {
 				break;
 		
 		}
-		printf(" %s\n", folder->files[i].name);
+		printf(" %s", folder->files[i].name);
 		if (i == folder->cur)
 			printf("\x1b[27m");
 	}
+	fflush(stdout);
 }
-
-#endif

@@ -1,3 +1,3 @@
 build:
-	gcc main.c -o fm -g3
+	gcc main.c folder.c window.c -o fm -O4
 	./fm
