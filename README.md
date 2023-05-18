@@ -1,7 +1,7 @@
 # fm
 A terminal file manager made in C  
 Lots of inspiration took from [nnn](https://github.com/jarun/nnn/)  
-This project is a WIP, it doesn't even compile right now xD  
+This project is a WIP
 ## features
 (More like wishlist)  
 * Nerd font icons
