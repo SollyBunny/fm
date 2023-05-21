@@ -3,14 +3,26 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
+#include <time.h>
 
 #include <unistd.h>
 #include <dirent.h>
 #include <signal.h>
 #include <termios.h>
+#include <fcntl.h>
+#include <poll.h>
 
+#include <sys/errno.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/select.h>
+
+#define DEFS_ONLY
+#include "config.h"
+#undef DEFS_ONLY
 
 #define MAX_PATH 4096
 #define MAX_NAME 256
@@ -24,18 +36,9 @@ typedef struct {
 	unsigned char type;
 } File;
 
-typedef struct {
-	char *path;
-	File *files;
-	unsigned int numfiles;
-	unsigned int allocfiles;
-	int cur;
-	int off;
-} Folder;
-
-void __attribute__((noreturn)) die(const char msg[]);
-
-enum Action {
+enum Enum {
+	NONE = 0,
+	QUIT,
 	FORW,
 	BACK,
 	UP,
@@ -48,19 +51,42 @@ enum Action {
 	HOME,
 	END,
 	GOTO,
-	PATH
+	PATH,
+	PERMDIR
 };
 
-void action(Folder *folder, enum Action action);
-void actionarg(Folder *folder, enum Action action, void *arg);
+typedef struct {
+	char *path;
+	File *files;
+	unsigned int numfiles;
+	unsigned int allocfiles;
+	int cur;
+	int off;
+	enum Enum error;
+	#ifdef FIFOEXEC
+		struct {
+			char path[MAX_NAME];
+			int fd;
+		} fifo;
+	#endif
+} Folder;
+
+void __attribute__((noreturn)) die(char *msg);
+
 void onresize();
-int tick(Folder *folder);
 
 void w_setup();
 void w_reset();
-void w_display(Folder *folder);
 
 void f_readdir(Folder *folder, char *path);
 void f_select(Folder *folder, char *path);
 void f_scroll(Folder *folder);
+void f_scrollto(Folder *folder, int y);
+void f_scrollby(Folder *folder, int dy);
+void f_close(Folder *folder);
+void f_fifo(Folder *folder);
+void f_display(Folder *folder);
+
+#include "config.h"
+
 #endif
