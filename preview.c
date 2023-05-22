@@ -123,7 +123,7 @@ void previewupdate() {
 	// File Type
 	if (S_ISREG(preview.stat.st_mode)) {
 		preview.mime = (char*)magic_file(magic_ctx, preview.path);
-		if (strncmp(preview.mime, "text", 4) == 0) {
+		/*if (strncmp(preview.mime, "text", 4) == 0) {
 			preview.type = TXT;
 			char* args[] = { "micro", preview.path, NULL };
 			previewspawn(args);
@@ -146,6 +146,13 @@ void previewupdate() {
 			sprintf(args[2], "--vo-kitty-cols=%u", W);
 			sprintf(args[3], "--vo-kitty-rows=%u", H - 1);
 			previewspawn(args);
+		}*/
+		static typeof(previewprograms[0]) *p = previewprograms;
+		for (int i = 0; i < sizeof(previewprograms) / sizeof(previewprograms[0]); ++i, ++p) {
+			if (strcmp(preview.mime, p->mime) != 0) continue;
+			if (p->filenum) p->args[p->filenum] = preview.path;
+			previewspawn(p->args);
+			break;
 		}
 	} else if (S_ISDIR(preview.stat.st_mode)) {
 		preview.mime = NULL;

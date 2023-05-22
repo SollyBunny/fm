@@ -1,17 +1,17 @@
 
-build: buildfm buildpreview
-buildforce: buildfmforce buildpreviewforce
+build: fm prev
+buildforce: fmforce prevforce
 
 run:
 	"./fm"
 	@ echo exited
 
-buildfm: main.c folder.c window.c config.h common.h buildfmforce
-buildfmforce:
+fmforce: fm
+fm:
 	cc "main.c" "folder.c" "window.c" -o "fm" -O4
 
-buildpreview: preview.c buildpreviewforce
-buildpreviewforce:
+prevforce: prev
+prev:
 	cc "preview.c" -o "preview" -lmagic -O4
 
 	
